@@ -5,6 +5,7 @@ ipch
 dynload_python.sdf
 dynload_python.suo
 *.pyc
+*.gyp
 # Haven't integrated these yet
 util/.idea
 util/lib/gyp
@@ -12,3 +13,5 @@ util/other-licenses/gyp
 util/tools/gyp
 util/scripts/gyp_dynpython.py
 util/scripts/generate.bat
+util/scripts/gyp_dynpython
+util/scripts/gyp_dynpython.bat
