@@ -1,5 +1,18 @@
 #include "Python.h"
-// 
+// Looking into supporting other operating systems..
+
+
+#ifndef _WIN32
+#	include <dlfcn.h>
+#	defome HMODULE void*
+#	define GetModuleHandleA(x) dlopen(x, RTLD_NOW)
+#	define LoadLibraryA(x) dlopen(x, RTLD_NOW)
+#	define FreeLibrary(x) dlclose(x)
+#	defome GetProcAddress(h,x) dlsym(h,x)
+#endif
+
+
+// Whether or not the library has been loaded.
 static int DynPy_LibraryLoaded = 0;
 
 // Various flags.
@@ -29,7 +42,7 @@ void DynPy_Initialize()
 	#ifdef DEBUG
 	DynPy_DebugVerbose = 1;
 	#else
-	DynPy_DebugVerbose = (getenv("DYNPY_DEBUG") != NULL);
+	DynPy_DebugVerbose = (getenv(DYNPY_DEBUG_ENV) != NULL);
 	#endif
 	
 	// Now attempt to find the best python installation to use.
@@ -65,22 +78,6 @@ void DynPy_Initialize()
 	// Lastly, set that our library has been loaded.
 	DynPy_LibraryLoaded = 1;
 }
-
-
-void Py_InitializeEx(int initsigs)
-int Py_IsInitialized() {
-	return DynPy_IsInitialized() && _Py_IsInitialized();
-}
-void DynPy_SetPythonHome(char *home) {
-	if(!DynPy_IsInitialized()) {
-		DynPy_IsInitialized()
-	}
-}
-
-void PyEval_InitThreads()
-int PyEval_ThreadsInitialized()
-void PyEval_ReleaseLock()
-void PyEval_AcquireLock()
 
 // Verify that our python library has been loaded and the tab list
 // has been initialized (if we're not lazy-loading)
