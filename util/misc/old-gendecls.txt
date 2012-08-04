@@ -1,0 +1,82 @@
+
+#noinspection PyUnreachableCode
+def pprototypes(r):
+	return
+	for p in r:
+		print 'Type:', p.decltype
+		print 'Name:', p.name
+		print 'Returns:', p.rettype
+		if p.decltype == 'Func':
+			print 'Args:', '( %s )' % p.args
+		if p.valid_indexes():
+			print 'Indexed: [%d] - [%d]' % (p.start_index, p.end_index)
+			print 'Line: %s' % filtered[p.start_index:p.end_index]
+			removal_queue.insert(0, [p.start_index, p.end_index])
+		print ''
+
+def write_to_file(suffix, decls):
+	global output_base
+	fProcessed = open('%s.%s.c' % (output_base, suffix), 'w')
+	fProcessed.write('\n'.join(decls))
+	fProcessed.close()
+
+protos = parse_declarations(filtered)
+pprototypes(protos)
+buffer = list(filtered)
+for removal in removal_queue: del buffer[removal[0]:removal[1]]
+filtered = ''.join(buffer)
+write_to_file('types', filter(lambda l: len(l) > 0 ,[s.strip(ws) for s in filtered.splitlines()]))
+
+pyport = os.path.join(env.inc_dir, 'pyport.h')
+contents = read_text(pyport)
+
+write_lines(os.path.join(env.scripts_dir, 'pyport.h'), split_lines_rtrim(pplines))
+sys.exit(0)
+
+#noinspection PyUnreachableCode
+declarations = {
+	'Func' : [],
+	'Data' : [],
+	'Type' : [],
+	'Extra' : []
+}
+typedecls = []
+
+def add_if_exported(s, t):
+	if s in exports:
+		del exports[exports.index(s)]
+		declarations[t].append(line)
+	else:
+		#print '\t[%s] %s' % (t, s)
+		pass
+
+print 'Non-Exported Declarations:'
+for line in [ l.strip(ws) for l in filtered.splitlines() ]:
+	if line.startswith('typedef') or line.startswith('union') or line.startswith('struct'): typedecls.append(line)
+	elif line.startswith('PythonDynLoad_Func'):
+		rgxobj = re.search(r"^\s*PythonDynLoad_Func\((?P<rtype>[^)]+)\)\s+(?P<funcn>[^(]+)\s*(?P<args>.+);$", line, re.MULTILINE)
+		if not rgxobj: continue
+		func_name = rgxobj.group("funcn")
+		add_if_exported(func_name.strip(ws), 'Func')
+	elif line.startswith('PythonDynLoad_Data'):
+		rgxobj = re.search(r"^\s*PythonDynLoad_Data\((?P<type>[^)]+)\)\s+(?P<datastr>[^(]+)\s*;$", line, re.MULTILINE)
+		if not rgxobj: continue
+		datastr = rgxobj.group("datastr")
+		for v in datastr.split(','):
+			add_if_exported(v.strip('*\r\n\t '), 'Data')
+	else: declarations['Extra'].append(line)
+
+
+def write_to_file(suffix, decls):
+	global output_base
+	fProcessed = open('%s.%s.c' % (output_base, suffix), 'w')
+	fProcessed.write('\n'.join(decls))
+	fProcessed.close()
+
+#fProcessed = open(sys.argv[2], 'w')
+write_to_file('types', typedecls)
+write_to_file('funcs', declarations['Func'])
+write_to_file('data', declarations['Data'])
+write_to_file('extra', declarations['Extra'])
+#print '\n'.join(['','Undeclared exports:'] + ['\t'+e for e in exports])
+#print '\n'.join(['','Non-Export Declarations:'] + ['\t'+e for e in declarations['Extra']])

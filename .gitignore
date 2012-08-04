@@ -1,2 +1,14 @@
 bin
 obj
+ipch
+*.opensdf
+dynload_python.sdf
+dynload_python.suo
+*.pyc
+# Haven't integrated these yet
+util/.idea
+util/lib/gyp
+util/other-licenses/gyp
+util/tools/gyp
+util/scripts/gyp_dynpython.py
+util/scripts/generate.bat

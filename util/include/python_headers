@@ -1,0 +1,7 @@
+#include "Python.h"
+#include "bitset.h"
+#include "descrobject.h"
+#include "frameobject.h"
+#include "methodobject.h"
+#include "structmember.h"
+

@@ -135,6 +135,7 @@ tt {
 
 def ninja_dump(target):
     global cmdStr
+    print [cmdStr, '-t', 'query', target]
     proc = subprocess.Popen([cmdStr, '-t', 'query', target],
                             stdout=subprocess.PIPE)
     return proc.communicate()[0]
